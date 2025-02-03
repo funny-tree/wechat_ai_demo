@@ -1,0 +1,16 @@
+<view class="container">
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <input 
+      placeholder="请输入你的问题" 
+      bindinput="onInput" 
+      value="{{inputText}}" 
+    />
+    <button bindtap="sendMessage">发送</button>
+  </view>
+
+  <!-- 响应区域 -->
+  <view class="response-area">
+    <text>{{responseText}}</text>
+  </view>
+</view>
