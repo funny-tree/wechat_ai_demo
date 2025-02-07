@@ -1,16 +1,27 @@
 <view class="container">
-  <!-- 输入区域 -->
-  <view class="input-area">
-    <input 
-      placeholder="请输入你的问题" 
-      bindinput="onInput" 
-      value="{{inputText}}" 
-    />
-    <button bindtap="sendMessage">发送</button>
-  </view>
+  <!-- 聊天记录展示区域 -->
+  <scroll-view class="chat-list" scroll-y scroll-with-animation scroll-top="{{scrollTop}}">
+    <block wx:for="{{messages}}" wx:key="index">
+      <!-- 用户消息 -->
+      <view wx:if="{{item.role === 'user'}}" class="message user-message">
+        <text>{{item.content}}</text>
+      </view>
+      <!-- AI 消息 -->
+      <view wx:else class="message ai-message">
+        <text>{{item.content}}</text>
+      </view>
+    </block>
+  </scroll-view>
 
-  <!-- 响应区域 -->
-  <view class="response-area">
-    <text>{{responseText}}</text>
+  <!-- 输入框和发送按钮 -->
+  <view class="input-area">
+    <input
+      class="input"
+      placeholder="请输入内容..."
+      value="{{inputText}}"
+      bindinput="onInput"
+      bindconfirm="sendMessage"
+    />
+    <button class="send-btn" bindtap="sendMessage">发送</button>
   </view>
 </view>

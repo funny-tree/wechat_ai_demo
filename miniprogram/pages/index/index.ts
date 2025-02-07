@@ -1,66 +1,63 @@
 Page({
   data: {
-    inputText: '', // 用户输入的内容
-    responseText: '' // AI返回的内容
+    messages: [ // 初始化系统消息
+      { role: "system", content: "你好" }
+    ],
+    inputText: "",
+    scrollTop: 0
   },
 
-  // 监听输入框内容变化
-  onInput: function (e) {
-    this.setData({
-      inputText: e.detail.value
+  // 输入框内容变化
+  onInput(e) {
+    this.setData({ inputText: e.detail.value });
+  },
+
+  // 发送消息
+  async sendMessage() {
+    const inputText = this.data.inputText.trim();
+    if (!inputText) return wx.showToast({ title: "内容不能为空", icon: "none" });
+
+    // 添加用户消息
+    const newMessages = [...this.data.messages, { role: "user", content: inputText }];
+    this.setData({ 
+      messages: newMessages,
+      inputText: "",
+      scrollTop: 99999 // 滚动到底部
     });
-  },
 
-  // 发送消息给AI
-  sendMessage: function () {
-    const that = this;
-    const inputText = this.data.inputText;
-
-    // 检查输入是否为空
-    if (!inputText) {
-      wx.showToast({
-        title: '请输入内容',
-        icon: 'none'
-      });
-      return;
-    }
-
-    // 替换为你的API接口URL和API Key
-    const apiUrl = 'https://api.moonshot.cn/v1/chat/completions'; // 你的API地址
-    const apiKey = '你的key'; // 你的API Key
-
-    // 发起网络请求
-    wx.request({
-      url: apiUrl,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}` // 如果有API Key，放在这里
-      },
-      data: {
-        message: inputText // 发送用户输入的内容
-      },
-      success: function (res) {
-        if (res.statusCode === 200) {
-          // 请求成功，更新响应内容
-          that.setData({
-            responseText: res.data.response // 假设API返回的数据中有response字段
-          });
-        } else {
-          // 请求失败，提示用户
-          wx.showToast({
-            title: '请求失败，请重试',
-            icon: 'none'
-          });
-        }
-      },
-      fail: function (err) {
-        // 网络错误，提示用户
-        wx.showToast({
-          title: '网络错误，请检查连接',
-          icon: 'none'
+    // 调用 DeepSeek API
+    try {
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: "https://api.deepseek.com/v1/chat/completions", // 注意这个 endpoint
+          method: "POST",
+          header: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 替换这里，前面这个不要删" // 替换你的 key
+          },
+          data: {
+            model: "deepseek-reasoner",
+            messages: newMessages,
+            stream: false
+          },
+          success: resolve,
+          fail: reject
         });
+      });
+
+      // 处理响应
+      if (res.statusCode === 200) {
+        const aiResponse = res.data.choices[0].message.content;
+        this.setData({
+          messages: [...this.data.messages, { role: "assistant", content: aiResponse }],
+          scrollTop: 99999
+        });
+      } else {
+        throw new Error(`请求失败: ${res.data}`);
       }
-    });
+    } catch (err) {
+      console.error("API 调用错误:", err);
+      wx.showToast({ title: "请求失败，请重试", icon: "none" });
+    }
   }
 });
